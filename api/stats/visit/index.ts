@@ -35,16 +35,20 @@ export default async function handler(req: Request) {
     'Access-Control-Allow-Headers': 'Content-Type',
   };
 
+  // Логирование для отладки
+  console.log('[Visit API] Request:', {
+    method: req.method,
+    url: req.url,
+    headers: Object.fromEntries(req.headers.entries())
+  });
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 200, headers });
   }
 
   try {
     if (req.method === 'GET') {
-      // Для production с KV:
-      // const count = await kv.get<number>('visitCount') || 0;
-      // return new Response(JSON.stringify({ count }), { status: 200, headers });
-      
+      console.log('[Visit API] GET - returning count:', visitCount);
       return new Response(
         JSON.stringify({ count: visitCount }),
         { status: 200, headers }
@@ -53,11 +57,7 @@ export default async function handler(req: Request) {
 
     if (req.method === 'POST') {
       visitCount += 1;
-      
-      // Для production с KV:
-      // await kv.incr('visitCount');
-      // const count = await kv.get<number>('visitCount') || 0;
-      // return new Response(JSON.stringify({ count }), { status: 200, headers });
+      console.log('[Visit API] POST - new count:', visitCount);
       
       return new Response(
         JSON.stringify({ count: visitCount }),
@@ -65,13 +65,15 @@ export default async function handler(req: Request) {
       );
     }
 
+    console.log('[Visit API] Method not allowed:', req.method);
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
       { status: 405, headers }
     );
-  } catch {
+  } catch (error) {
+    console.error('[Visit API] Error:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error', details: String(error) }),
       { status: 500, headers }
     );
   }

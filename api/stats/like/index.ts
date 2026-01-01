@@ -54,28 +54,31 @@ export default async function handler(req: Request) {
     'Access-Control-Allow-Headers': 'Content-Type',
   };
 
+  // Логирование для отладки
+  console.log('[Like API] Request:', {
+    method: req.method,
+    url: req.url,
+    headers: Object.fromEntries(req.headers.entries())
+  });
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 200, headers });
   }
 
   try {
     const clientId = getClientId(req);
+    console.log('[Like API] Client ID:', clientId);
 
     if (req.method === 'GET') {
-      // Для production с KV:
-      // const isLiked = await kv.sismember('likes', clientId);
-      // const count = await kv.scard('likes');
-      // return new Response(
-      //   JSON.stringify({ count, isLiked: isLiked === 1 }),
-      //   { status: 200, headers }
-      // );
-      
       const isLiked = likes.has(clientId);
+      const result = { 
+        count: likes.size,
+        isLiked
+      };
+      console.log('[Like API] GET - returning:', result);
+      
       return new Response(
-        JSON.stringify({ 
-          count: likes.size,
-          isLiked
-        }),
+        JSON.stringify(result),
         { status: 200, headers }
       );
     }
@@ -83,41 +86,35 @@ export default async function handler(req: Request) {
     if (req.method === 'POST') {
       const body = await req.json();
       const { action } = body; // 'add' или 'remove'
+      console.log('[Like API] POST - action:', action);
 
       if (action === 'add') {
         likes.add(clientId);
-        // Для production с KV:
-        // await kv.sadd('likes', clientId);
       } else if (action === 'remove') {
         likes.delete(clientId);
-        // Для production с KV:
-        // await kv.srem('likes', clientId);
       }
 
-      // Для production с KV:
-      // const count = await kv.scard('likes');
-      // const isLiked = await kv.sismember('likes', clientId);
-      // return new Response(
-      //   JSON.stringify({ count, isLiked: isLiked === 1 }),
-      //   { status: 200, headers }
-      // );
+      const result = { 
+        count: likes.size,
+        isLiked: likes.has(clientId)
+      };
+      console.log('[Like API] POST - returning:', result);
 
       return new Response(
-        JSON.stringify({ 
-          count: likes.size,
-          isLiked: likes.has(clientId)
-        }),
+        JSON.stringify(result),
         { status: 200, headers }
       );
     }
 
+    console.log('[Like API] Method not allowed:', req.method);
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
       { status: 405, headers }
     );
-  } catch {
+  } catch (error) {
+    console.error('[Like API] Error:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error', details: String(error) }),
       { status: 500, headers }
     );
   }
