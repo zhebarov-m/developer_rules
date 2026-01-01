@@ -46,7 +46,7 @@ function getClientId(req: Request): string {
   return `${userAgent}_${Date.now()}`;
 }
 
-export default async function handler(req: Request) {
+export default async function handler(req: Request): Promise<Response> {
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
@@ -54,39 +54,29 @@ export default async function handler(req: Request) {
     'Access-Control-Allow-Headers': 'Content-Type',
   };
 
-  // Логирование для отладки
-  console.log('[Like API] Request:', {
-    method: req.method,
-    url: req.url,
-    headers: Object.fromEntries(req.headers.entries())
-  });
-
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers });
-  }
-
   try {
-    const clientId = getClientId(req);
-    console.log('[Like API] Client ID:', clientId);
+    const method = req.method;
 
-    if (req.method === 'GET') {
+    if (method === 'OPTIONS') {
+      return new Response(null, { status: 200, headers });
+    }
+
+    const clientId = getClientId(req);
+
+    if (method === 'GET') {
       const isLiked = likes.has(clientId);
-      const result = { 
-        count: likes.size,
-        isLiked
-      };
-      console.log('[Like API] GET - returning:', result);
-      
       return new Response(
-        JSON.stringify(result),
+        JSON.stringify({ 
+          count: likes.size,
+          isLiked
+        }),
         { status: 200, headers }
       );
     }
 
-    if (req.method === 'POST') {
+    if (method === 'POST') {
       const body = await req.json();
-      const { action } = body; // 'add' или 'remove'
-      console.log('[Like API] POST - action:', action);
+      const { action } = body;
 
       if (action === 'add') {
         likes.add(clientId);
@@ -94,28 +84,29 @@ export default async function handler(req: Request) {
         likes.delete(clientId);
       }
 
-      const result = { 
-        count: likes.size,
-        isLiked: likes.has(clientId)
-      };
-      console.log('[Like API] POST - returning:', result);
-
       return new Response(
-        JSON.stringify(result),
+        JSON.stringify({ 
+          count: likes.size,
+          isLiked: likes.has(clientId)
+        }),
         { status: 200, headers }
       );
     }
 
-    console.log('[Like API] Method not allowed:', req.method);
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
       { status: 405, headers }
     );
-  } catch (error) {
-    console.error('[Like API] Error:', error);
+  } catch (error: any) {
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: String(error) }),
-      { status: 500, headers }
+      JSON.stringify({ error: 'Internal server error' }),
+      { 
+        status: 500, 
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        }
+      }
     );
   }
 }

@@ -27,7 +27,7 @@ let visitCount = 0;
 
 // initVisitCount();
 
-export default async function handler(req: Request) {
+export default async function handler(req: Request): Promise<Response> {
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
@@ -35,46 +35,42 @@ export default async function handler(req: Request) {
     'Access-Control-Allow-Headers': 'Content-Type',
   };
 
-  // Логирование для отладки
-  console.log('[Visit API] Request:', {
-    method: req.method,
-    url: req.url,
-    headers: Object.fromEntries(req.headers.entries())
-  });
-
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers });
-  }
-
   try {
-    if (req.method === 'GET') {
-      console.log('[Visit API] GET - returning count:', visitCount);
+    const method = req.method;
+    
+    if (method === 'OPTIONS') {
+      return new Response(null, { status: 200, headers });
+    }
+
+    if (method === 'GET') {
       return new Response(
         JSON.stringify({ count: visitCount }),
         { status: 200, headers }
       );
     }
 
-    if (req.method === 'POST') {
+    if (method === 'POST') {
       visitCount += 1;
-      console.log('[Visit API] POST - new count:', visitCount);
-      
       return new Response(
         JSON.stringify({ count: visitCount }),
         { status: 200, headers }
       );
     }
 
-    console.log('[Visit API] Method not allowed:', req.method);
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
       { status: 405, headers }
     );
-  } catch (error) {
-    console.error('[Visit API] Error:', error);
+  } catch (error: any) {
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: String(error) }),
-      { status: 500, headers }
+      JSON.stringify({ error: 'Internal server error' }),
+      { 
+        status: 500, 
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        }
+      }
     );
   }
 }
