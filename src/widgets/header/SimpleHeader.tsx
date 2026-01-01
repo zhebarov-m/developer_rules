@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { Github, Menu, Code2, Server, Star, Eye, Moon, Sun } from 'lucide-react';
+import { Github, Menu, Code2, Server, Star, Eye, Moon, Sun, Send } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Search } from 'lucide-react';
-import { cn } from '@/shared/lib/utils';
+import { cn, pluralizeViews } from '@/shared/lib/utils';
 import type { DocType } from '@/shared/types/docTypes';
 import { useVisitCounter, useLikeButton } from '@/shared/lib/hooks/useStats';
 import { useTheme } from '@/shared/lib/hooks/useTheme';
@@ -92,6 +92,11 @@ export const SimpleHeader = React.memo<SimpleHeaderProps>(({
             <span className="font-medium">
               {visitLoading ? '...' : (visitCount ?? 0).toLocaleString()}
             </span>
+            {!visitLoading && (
+              <span className="text-xs opacity-70">
+                {pluralizeViews(visitCount ?? 0)}
+              </span>
+            )}
           </div>
 
           {/* Кнопка лайка */}
@@ -109,19 +114,38 @@ export const SimpleHeader = React.memo<SimpleHeaderProps>(({
               "h-4 w-4 transition-all",
               isLiked && "fill-primary"
             )} />
-            <span className="hidden sm:inline font-medium">
+            <span className="font-medium">
               {likeLoading ? '...' : likeCount}
             </span>
           </Button>
 
           {/* Переключатель Frontend/Backend - перенесен вправо */}
           <div className="flex items-center gap-1 p-1 bg-muted rounded-lg border border-border">
+            {/* Мобильная версия - только активная иконка */}
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => onDocTypeChange(docType === 'frontend' ? 'backend' : 'frontend')}
+              className={cn(
+                "gap-2 transition-all md:hidden",
+                "bg-primary text-primary-foreground shadow-sm"
+              )}
+              aria-label={docType === 'frontend' ? 'Переключить на Backend' : 'Переключить на Frontend'}
+            >
+              {docType === 'frontend' ? (
+                <Code2 className="h-4 w-4" />
+              ) : (
+                <Server className="h-4 w-4" />
+              )}
+            </Button>
+            
+            {/* Десктопная версия - обе кнопки */}
             <Button
               variant={docType === 'frontend' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => onDocTypeChange('frontend')}
               className={cn(
-                "gap-2 transition-all",
+                "gap-2 transition-all hidden md:flex",
                 docType === 'frontend' && "bg-primary text-primary-foreground shadow-sm"
               )}
             >
@@ -133,7 +157,7 @@ export const SimpleHeader = React.memo<SimpleHeaderProps>(({
               size="sm"
               onClick={() => onDocTypeChange('backend')}
               className={cn(
-                "gap-2 transition-all",
+                "gap-2 transition-all hidden md:flex",
                 docType === 'backend' && "bg-primary text-primary-foreground shadow-sm"
               )}
             >
@@ -157,15 +181,26 @@ export const SimpleHeader = React.memo<SimpleHeaderProps>(({
             )}
           </Button>
 
-          <a
-            href="https://github.com/zhebarov-m"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="GitHub"
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 w-9"
-          >
-            <Github className="h-5 w-5" />
-          </a>
+          <div className="hidden md:flex items-center gap-2">
+            <a
+              href="https://github.com/zhebarov-m"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub"
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 w-9"
+            >
+              <Github className="h-5 w-5" />
+            </a>
+            <a
+              href="https://t.me/je_m27"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Telegram"
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 w-9"
+            >
+              <Send className="h-5 w-5" />
+            </a>
+          </div>
         </div>
       </div>
       

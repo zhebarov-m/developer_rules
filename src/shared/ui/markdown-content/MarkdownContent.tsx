@@ -48,7 +48,7 @@ export const MarkdownContent = React.memo<MarkdownContentProps>(({
           },
           h1({ children }) {
             return (
-              <h1 className="text-4xl font-bold mb-6 pb-3 border-b border-border flex items-center gap-3">
+              <h1 className="text-3xl font-bold mb-6 pb-3 border-b border-border flex items-center gap-3">
                 {children}
               </h1>
             );
@@ -64,7 +64,7 @@ export const MarkdownContent = React.memo<MarkdownContentProps>(({
             return (
               <h2 
                 id={id}
-                className="text-3xl font-bold mt-12 mb-6 pb-3 border-b border-border flex items-center gap-3 scroll-mt-20"
+                className="text-2xl font-bold mt-12 mb-6 pb-3 border-b border-border flex items-center gap-3 scroll-mt-20"
               >
                 {displayText}
               </h2>

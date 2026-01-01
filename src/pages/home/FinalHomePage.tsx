@@ -5,6 +5,7 @@ import { ScrollArea } from '@/shared/ui/scroll-area';
 import { MarkdownContent } from '@/shared/ui/markdown-content';
 import { ScrollToTop } from '@/shared/ui/scroll-to-top';
 import { parseMarkdownHeaders } from '@/shared/lib/markdown';
+import { useVisitCounter } from '@/shared/lib/hooks/useStats';
 import type { DocType } from '@/shared/types/docTypes';
 
 interface FinalHomePageProps {
@@ -23,6 +24,7 @@ export const FinalHomePage: React.FC<FinalHomePageProps> = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSection, setActiveSection] = useState<string>();
+  const { count: visitCount, isLoading: visitLoading } = useVisitCounter();
 
   // Применяем тему при изменении типа документации и при монтировании
   useEffect(() => {
@@ -154,6 +156,8 @@ export const FinalHomePage: React.FC<FinalHomePageProps> = ({
         onSectionClick={handleSectionClick}
         isOpen={isSidebarOpen}
         onClose={handleCloseSidebar}
+        visitCount={visitCount}
+        visitLoading={visitLoading}
       />
 
       <div className="flex-1 flex flex-col min-w-0">
