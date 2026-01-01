@@ -37,14 +37,20 @@ export const useVisitCounter = () => {
         if (mounted) {
           setCount(newCount);
         }
-      } catch {
+      } catch (error) {
+        console.error('[VisitCounter] Error:', error);
         if (mounted) {
           setIsLoading(false);
           try {
             const fallbackCount = await getVisitCount();
-            setCount(fallbackCount);
-          } catch {
-            setCount(0);
+            if (mounted) {
+              setCount(fallbackCount);
+            }
+          } catch (fallbackError) {
+            console.error('[VisitCounter] Fallback error:', fallbackError);
+            if (mounted) {
+              setCount(0);
+            }
           }
         }
       }
@@ -80,7 +86,8 @@ export const useLikeButton = () => {
         setIsLiked(stats.isLiked);
         setLikeCount(stats.count);
         setIsLoading(false);
-      } catch {
+      } catch (error) {
+        console.error('[LikeButton] Error:', error);
         if (mounted) {
           setIsLiked(false);
           setLikeCount(0);

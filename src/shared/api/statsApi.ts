@@ -7,7 +7,8 @@ import * as mockApi from './mockStatsApi';
 // В dev используем mock с localStorage (симулирует глобальное хранилище)
 // В production используем реальный Vercel API
 const API_BASE = '/api/stats';
-const USE_MOCK = import.meta.env.DEV;
+// Более надежная проверка окружения
+const USE_MOCK = import.meta.env.DEV || import.meta.env.MODE === 'development';
 
 export interface VisitStats {
   count: number;
@@ -35,13 +36,24 @@ export async function incrementVisit(): Promise<number> {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to increment visit');
+      const errorText = await response.text();
+      console.error('[StatsAPI] incrementVisit failed:', response.status, errorText);
+      // Fallback на mock API если реальный API недоступен
+      console.warn('[StatsAPI] Falling back to mock API');
+      return await mockApi.mockIncrementVisit();
     }
 
     const data: VisitStats = await response.json();
     return data.count;
-  } catch {
-    return 0;
+  } catch (error) {
+    console.error('[StatsAPI] incrementVisit error:', error);
+    // Fallback на mock API если реальный API недоступен
+    try {
+      console.warn('[StatsAPI] Falling back to mock API');
+      return await mockApi.mockIncrementVisit();
+    } catch {
+      return 0;
+    }
   }
 }
 
@@ -58,16 +70,32 @@ export async function getVisitCount(): Promise<number> {
   }
 
   try {
-    const response = await fetch(`${API_BASE}/visit`);
+    const response = await fetch(`${API_BASE}/visit`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
     if (!response.ok) {
-      throw new Error('Failed to get visit count');
+      const errorText = await response.text();
+      console.error('[StatsAPI] getVisitCount failed:', response.status, errorText);
+      // Fallback на mock API если реальный API недоступен
+      console.warn('[StatsAPI] Falling back to mock API');
+      return await mockApi.mockGetVisitCount();
     }
 
     const data: VisitStats = await response.json();
     return data.count;
-  } catch {
-    return 0;
+  } catch (error) {
+    console.error('[StatsAPI] getVisitCount error:', error);
+    // Fallback на mock API если реальный API недоступен
+    try {
+      console.warn('[StatsAPI] Falling back to mock API');
+      return await mockApi.mockGetVisitCount();
+    } catch {
+      return 0;
+    }
   }
 }
 
@@ -91,12 +119,24 @@ export async function toggleLike(isLiked: boolean): Promise<LikeStats> {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to toggle like');
+      const errorText = await response.text();
+      console.error('[StatsAPI] toggleLike failed:', response.status, errorText);
+      // Fallback на mock API если реальный API недоступен
+      console.warn('[StatsAPI] Falling back to mock API');
+      return await mockApi.mockToggleLike(isLiked);
     }
 
-    return await response.json();
-  } catch {
-    return { count: 0, isLiked: false };
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('[StatsAPI] toggleLike error:', error);
+    // Fallback на mock API если реальный API недоступен
+    try {
+      console.warn('[StatsAPI] Falling back to mock API');
+      return await mockApi.mockToggleLike(isLiked);
+    } catch {
+      return { count: 0, isLiked: false };
+    }
   }
 }
 
@@ -113,15 +153,32 @@ export async function getLikeStats(): Promise<LikeStats> {
   }
 
   try {
-    const response = await fetch(`${API_BASE}/like`);
+    const response = await fetch(`${API_BASE}/like`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
     if (!response.ok) {
-      throw new Error('Failed to get like stats');
+      const errorText = await response.text();
+      console.error('[StatsAPI] getLikeStats failed:', response.status, errorText);
+      // Fallback на mock API если реальный API недоступен
+      console.warn('[StatsAPI] Falling back to mock API');
+      return await mockApi.mockGetLikeStats();
     }
 
-    return await response.json();
-  } catch {
-    return { count: 0, isLiked: false };
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('[StatsAPI] getLikeStats error:', error);
+    // Fallback на mock API если реальный API недоступен
+    try {
+      console.warn('[StatsAPI] Falling back to mock API');
+      return await mockApi.mockGetLikeStats();
+    } catch {
+      return { count: 0, isLiked: false };
+    }
   }
 }
 
